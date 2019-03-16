@@ -9,9 +9,13 @@ Note that this code could have been written better:
     2. The data preprocessing portion of the code could have been optimized for computational efficiency better.
 """
 
-import csv
 import pandas as pd
 import numpy as np
+import scipy.stats as stats
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+import tqdm
 import torch
 import torch.nn as nn
 import torch.nn.functional as fun
@@ -39,6 +43,26 @@ inchikey = list(data.inchikey)
 iupac_name = list(data.iupacname)
 
 assert len(molecular_formula) == len(inchikey) == len(iupac_name)
+
+# Data metrics, stats, graphs, and plots
+sns.scatterplot(molecular_weight, complexity).set_title("Molecular weights")
+plt.show()
+
+mean = np.mean(molecular_weight)
+median = np.median(molecular_weight)
+mode = stats.mode(molecular_weight, axis=None)
+data_range = np.ptp(molecular_weight)
+maximum = np.amax(molecular_weight)
+minimum = np.amin(molecular_weight)
+
+print(
+      "\nMean = {0}".format(mean),
+      "\nMedian = {0}".format(median),
+      "\nMode = {0}".format(mode),
+      "\nRange = {0}".format(data_range),
+      "\nMaximum = {0}".format(maximum),
+      "\nMinimum = {0}".format(minimum),
+)
 
 # Normalize all the data to be used in training
 datasets = []
@@ -90,10 +114,10 @@ print ("Length of Y data train set is: %s" %len(Y_data_train))
 print ("Length of Y data test set is: %s" %len(Y_data_test))
 
 # Turn input (X_data) and labels (Y_data) into Tensors
-for dataset in X_data_train:
+for dataset in tqdm(X_data_train):
   dataset = dataset.view(-1, 6)
   
-for dataset in X_data_test:
+for dataset in tqdm(X_data_test):
   dataset = dataset.view(-1, 6)
 
 Y_data_train = Y_data_train.view(-1, 1)
@@ -166,6 +190,14 @@ evaluations = model(X_data_test)
 for evaluation in evaluations:
   evaluation = int(evaluation)
 print (evaluations)
+
+def unnormalizer(datasets):
+        for datapoint in datasets:
+                new_datapoint = (datapoint + float(max(dataset))) * float(max(dataset)) + float(min(dataset))
+        return new_datapoint
+
+print (unnormalizer(evaluations))
+
 # # Un-normalize the predicted molecular weights
 # molecular_weight_pred = []
 
